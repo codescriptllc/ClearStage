@@ -1,0 +1,35 @@
+<!-- view.html?id=abc123 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ClearStage Timer</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+    .timer { font-size: 5rem; }
+  </style>
+</head>
+<body>
+  <h1>ClearStage Timer</h1>
+  <div class="timer" id="timer">--:--</div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const duration = parseInt(params.get("duration")) || 300;
+    let timeRemaining = duration;
+
+    function updateDisplay() {
+      const min = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+      const sec = String(timeRemaining % 60).padStart(2, '0');
+      document.getElementById("timer").textContent = `${min}:${sec}`;
+    }
+
+    setInterval(() => {
+      if (timeRemaining > 0) {
+        timeRemaining--;
+        updateDisplay();
+      }
+    }, 1000);
+
+    updateDisplay();
+  </script>
+</body>
+</html>
