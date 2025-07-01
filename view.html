@@ -1,35 +1,51 @@
-<!-- view.html?id=abc123 -->
 <!DOCTYPE html>
 <html>
 <head>
   <title>ClearStage Timer</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     body { font-family: sans-serif; text-align: center; padding-top: 50px; }
     .timer { font-size: 5rem; }
   </style>
 </head>
 <body>
-  <h1>ClearStage Timer</h1>
+  <h1 id="title">ClearStage Timer</h1>
   <div class="timer" id="timer">--:--</div>
+
   <script>
     const params = new URLSearchParams(window.location.search);
-    const duration = parseInt(params.get("duration")) || 300;
-    let timeRemaining = duration;
+    const name = params.get("name") || "Timer";
+    const id = params.get("id");
 
-    function updateDisplay() {
-      const min = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
-      const sec = String(timeRemaining % 60).padStart(2, '0');
-      document.getElementById("timer").textContent = `${min}:${sec}`;
+    document.getElementById("title").textContent = name;
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0J3XwYlan8aR5shsOw0nrFf0JwpBNQXs",
+      authDomain: "clearstage-73714.firebaseapp.com",
+      projectId: "clearstage-73714",
+      storageBucket: "clearstage-73714.firebasestorage.app",
+      messagingSenderId: "340372540118",
+      appId: "1:340372540118:web:7bd38459b6884b3c8a5777",
+      measurementId: "G-D3KNTT92M1"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    if (!id) {
+      alert("Timer ID not provided.");
+    } else {
+      db.collection("timers").doc(id).onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          const remaining = data.timeRemaining;
+          const min = String(Math.floor(remaining / 60)).padStart(2, '0');
+          const sec = String(remaining % 60).padStart(2, '0');
+          document.getElementById("timer").textContent = `${min}:${sec}`;
+        }
+      });
     }
-
-    setInterval(() => {
-      if (timeRemaining > 0) {
-        timeRemaining--;
-        updateDisplay();
-      }
-    }, 1000);
-
-    updateDisplay();
   </script>
 </body>
 </html>
