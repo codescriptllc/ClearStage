@@ -29,10 +29,10 @@
     }
 
     .progress-container {
-      position: relative;
-      width: 80%;
-      height: 20px;
-      margin: 250px auto 0; /* increased from 40px to 150px */
+        position: absolute;
+        bottom: 10%;
+        width: 80%;
+        height: 20px;
     }
 
     .progress-bar {
