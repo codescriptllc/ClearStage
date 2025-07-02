@@ -7,14 +7,19 @@
     <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-database.js"></script>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-    .timer { font-size: 5rem; }
-  </style>
 </head>
 <body>
   <h1 id="title">ClearStage Timer</h1>
   <div class="timer" id="timer">--:--</div>
+
+  <div class="progress-container">
+  <div class="progress-bar">
+    <div class="progress-segment green"></div>
+    <div class="progress-segment orange"></div>
+    <div class="progress-segment red"></div>
+  </div>
+  <div class="progress-indicator" id="progress-indicator">▼</div>
+</div>
 
   <script src="/firebaseconfiguration.js"></script>
 
@@ -37,6 +42,28 @@
         }
       });
     }
+  </script>
+
+  <script>
+    if (doc.exists) {
+  const data = doc.data();
+  const remaining = data.timeRemaining;
+  const duration = data.duration;
+
+  const min = String(Math.floor(remaining / 60)).padStart(2, '0');
+  const sec = String(remaining % 60).padStart(2, '0');
+  document.getElementById("timer").textContent = `${min}:${sec}`;
+
+  const progressFraction = (duration - remaining) / duration;
+  const container = document.querySelector('.progress-container');
+  const indicator = document.getElementById("progress-indicator");
+  if (container && indicator) {
+    const containerWidth = container.offsetWidth;
+    const indicatorPosition = containerWidth * progressFraction;
+    indicator.style.left = `${indicatorPosition}px`;
+  }
+}
+
   </script>
 </body>
 </html>
