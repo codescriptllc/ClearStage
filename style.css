@@ -20,7 +20,7 @@
     }
 
     .timer {
-      font-size: 10rem;
+      font-size: 15rem;
       font-weight: bold;
     }
 
@@ -28,7 +28,7 @@
       position: relative;
       width: 80%;
       height: 20px;
-      margin: 40px auto 0;
+      margin: 150px auto 0; /* increased from 40px to 150px */
     }
 
     .progress-bar {
@@ -59,8 +59,8 @@
 
     .progress-indicator {
       position: absolute;
-      top: -18px;
-      font-size: 24px;
+      top: -10px;
+      font-size: 25px;
       color: black;
       transform: translateX(-50%);
       transition: left 0.3s ease;
