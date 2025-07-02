@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ClearStage Session</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-analytics.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .session-title {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .timer-name {
+      font-size: 2.5rem;
+      margin-top: 10px;
+    }
+
+    .timer-display {
+      font-size: 10rem;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    .timer-display.blink {
+      color: red;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .progress-container {
+      position: relative;
+      width: 80%;
+      height: 20px;
+      margin: 40px auto;
+    }
+
+    .progress-bar {
+      display: flex;
+      height: 100%;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-segment {
+      height: 100%;
+    }
+
+    .green {
+      background-color: #4caf50;
+      width: 70%;
+    }
+
+    .orange {
+      background-color: #ff9800;
+      width: 20%;
+    }
+
+    .red {
+      background-color: #f44336;
+      width: 10%;
+    }
+
+    .progress-indicator {
+      position: absolute;
+      top: -15px;
+      font-size: 24px;
+      color: black;
+      transform: translateX(-50%);
+      transition: left 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="session-title" id="session-name">Loading Session...</h1>
+  <div class="timer-name" id="timer-name"></div>
+  <div class="timer-display" id="timer-display">--:--</div>
+
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-segment green"></div>
+      <div class="progress-segment orange"></div>
+      <div class="progress-segment red"></div>
+    </div>
+    <div class="progress-indicator" id="progress-indicator">▼</div>
+  </div>
+
+  <script src="/firebaseconfiguration.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("id");
+
+    const sessionNameEl = document.getElementById("session-name");
+    const timerNameEl = document.getElementById("timer-name");
+    const timerDisplayEl = document.getElementById("timer-display");
+    const indicatorEl = document.getElementById("progress-indicator");
+
+    const dbRef = firebase.firestore().collection("sessions").doc(sessionId);
+    let sessionData = null;
+    let countdownInterval = null;
+
+    function formatTime(seconds) {
+      const min = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const sec = String(seconds % 60).padStart(2, '0');
+      return `${min}:${sec}`;
+    }
+
+    function startTimerLoop() {
+      if (!sessionData || !sessionData.timers) return;
+
+      const currentTimer = sessionData.timers[sessionData.currentTimerIndex];
+      let remaining = sessionData.timeRemaining;
+
+      timerNameEl.textContent = currentTimer.name;
+      timerDisplayEl.textContent = formatTime(remaining);
+      updateProgress(remaining, currentTimer.duration);
+
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      countdownInterval = setInterval(() => {
+        if (remaining <= 0) {
+          nextTimer();
+          return;
+        }
+
+        remaining -= 1;
+        timerDisplayEl.textContent = formatTime(remaining);
+        updateProgress(remaining, currentTimer.duration);
+
+        // Blink if time ≤ 10
+        if (remaining <= 10 && remaining > 0) {
+          timerDisplayEl.classList.add("blink");
+        } else {
+          timerDisplayEl.classList.remove("blink");
+        }
+
+        // Save updated time
+        dbRef.update({
+          timeRemaining: remaining,
+          lastUpdated: firebase.firestore.Timestamp.now()
+        });
+      }, 1000);
+    }
+
+    function updateProgress(remaining, duration) {
+      const progressFraction = (duration - remaining) / duration;
+      const container = document.querySelector('.progress-container');
+      if (container && indicatorEl) {
+        const width = container.offsetWidth;
+        indicatorEl.style.left = `${width * progressFraction}px`;
+      }
+    }
+
+    function nextTimer() {
+      if (sessionData.currentTimerIndex + 1 < sessionData.timers.length) {
+        sessionData.currentTimerIndex += 1;
+        const nextDuration = sessionData.timers[sessionData.currentTimerIndex].duration;
+
+        dbRef.update({
+          currentTimerIndex: sessionData.currentTimerIndex,
+          timeRemaining: nextDuration,
+          lastUpdated: firebase.firestore.Timestamp.now()
+        });
+      } else {
+        // End of session
+        clearInterval(countdownInterval);
+        timerNameEl.textContent = "Session Complete";
+        timerDisplayEl.textContent = "00:00";
+        timerDisplayEl.classList.remove("blink");
+      }
+    }
+
+    if (!sessionId) {
+      alert("Missing session ID in URL");
+    } else {
+      dbRef.onSnapshot((doc) => {
+        if (!doc.exists) return;
+        sessionData = doc.data();
+        sessionNameEl.textContent = sessionData.name || "Session";
+
+        startTimerLoop();
+      });
+    }
+  </script>
+
+</body>
+</html>
