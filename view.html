@@ -30,38 +30,45 @@
 
   <!-- Timer Logic -->
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const name = params.get("name") || "Timer";
-    const id = params.get("id");
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get("name") || "Timer";
+  const id = params.get("id");
 
-    document.getElementById("title").textContent = name;
+  document.getElementById("title").textContent = name;
 
-    if (!id) {
-      alert("Timer ID not provided.");
-    } else {
-      db.collection("timers").doc(id).onSnapshot((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          const remaining = data.timeRemaining;
-          const duration = data.duration;
+  if (!id) {
+    alert("Timer ID not provided.");
+  } else {
+    db.collection("timers").doc(id).onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        const remaining = data.timeRemaining;
+        const duration = data.duration;
 
-          // Update timer text
-          const min = String(Math.floor(remaining / 60)).padStart(2, '0');
-          const sec = String(remaining % 60).padStart(2, '0');
-          document.getElementById("timer").textContent = `${min}:${sec}`;
+        const timerElement = document.getElementById("timer");
+        const min = String(Math.floor(remaining / 60)).padStart(2, '0');
+        const sec = String(remaining % 60).padStart(2, '0');
+        timerElement.textContent = `${min}:${sec}`;
 
-          // Update progress indicator
-          const progressFraction = (duration - remaining) / duration;
-          const container = document.querySelector('.progress-container');
-          const indicator = document.getElementById("progress-indicator");
-          if (container && indicator) {
-            const containerWidth = container.offsetWidth;
-            const indicatorPosition = containerWidth * progressFraction;
-            indicator.style.left = `${indicatorPosition}px`;
-          }
+        // Blinking logic
+        if (remaining <= 10 && remaining > 0) {
+          timerElement.classList.add("blink-red");
+        } else {
+          timerElement.classList.remove("blink-red");
         }
-      });
-    }
+
+        // Progress indicator update
+        const progressFraction = (duration - remaining) / duration;
+        const container = document.querySelector('.progress-container');
+        const indicator = document.getElementById("progress-indicator");
+        if (container && indicator) {
+          const containerWidth = container.offsetWidth;
+          const indicatorPosition = containerWidth * progressFraction;
+          indicator.style.left = `${indicatorPosition}px`;
+        }
+      }
+    });
+  }
   </script>
 
 </body>
