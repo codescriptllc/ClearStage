@@ -31,7 +31,7 @@
 
 .timer.blink-red {
   color: red;
-  animation: blink 1.5s infinite;
+  animation: blink 1s infinite;
 }
 
     .timer {
