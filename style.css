@@ -29,16 +29,30 @@
   transition: color 0.2s ease;
 }
 
-    .note {
-      font-size: 22px;
-      font-weight: 500;
-      padding: 10px;
-      text-align: center;
-      max-width: 90%;
-      margin: 0 auto;
-      color: #333;
-    }
-    
+  .note {
+    font-size: 22px;
+    font-weight: normal;
+    padding: 10px;
+    text-align: center;
+    max-width: 90%;
+    margin: 0 auto;
+    color: #333;
+  }
+
+  .note.bold {
+    font-weight: bold;
+  }
+
+  .note.blink {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+
 .timer.blink-red {
   color: red;
   animation: blink 1s infinite;
