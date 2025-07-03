@@ -30,7 +30,7 @@
 }
 
   .timer.small {
-    font-size: 5rem;
+    font-size: 8rem;
   }
 
   .note {
@@ -38,7 +38,7 @@
     padding: 12px;
     text-align: center;
     max-width: 90%;
-    margin-bottom: 10%;
+    margin: 10px auto 0;
     color: #333;
     display: none;
     transition: font-size 0.3s ease, opacity 0.3s ease;
