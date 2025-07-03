@@ -2,19 +2,19 @@
 <html>
 <head>
   <title>ClearStage Timer</title>
-    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-analytics.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-database.js"></script>
 
-    <link rel="stylesheet" href="style.css" />
-
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <h1 id="title">ClearStage Timer</h1>
   <div class="timer" id="timer">--:--</div>
+  <div class="note" id="note" style="display: none;"></div>
 
   <div class="progress-container">
     <div class="progress-bar">
@@ -30,45 +30,56 @@
 
   <!-- Timer Logic -->
   <script>
-  const params = new URLSearchParams(window.location.search);
-  const name = params.get("name") || "Timer";
-  const id = params.get("id");
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") || "Timer";
+    const id = params.get("id");
 
-  document.getElementById("title").textContent = name;
+    document.getElementById("title").textContent = name;
 
-  if (!id) {
-    alert("Timer ID not provided.");
-  } else {
-    db.collection("timers").doc(id).onSnapshot((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        const remaining = data.timeRemaining;
-        const duration = data.duration;
+    if (!id) {
+      alert("Timer ID not provided.");
+    } else {
+      db.collection("timers").doc(id).onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          const remaining = data.timeRemaining;
+          const duration = data.duration;
+          const note = data.notes || "";
 
-        const timerElement = document.getElementById("timer");
-        const min = String(Math.floor(remaining / 60)).padStart(2, '0');
-        const sec = String(remaining % 60).padStart(2, '0');
-        timerElement.textContent = `${min}:${sec}`;
+          // Update Timer
+          const timerElement = document.getElementById("timer");
+          const min = String(Math.floor(remaining / 60)).padStart(2, '0');
+          const sec = String(remaining % 60).padStart(2, '0');
+          timerElement.textContent = `${min}:${sec}`;
 
-        // Blinking logic
-        if (remaining <= 10 && remaining > 0) {
-          timerElement.classList.add("blink-red");
-        } else {
-          timerElement.classList.remove("blink-red");
+          // Blinking effect
+          if (remaining <= 10 && remaining > 0) {
+            timerElement.classList.add("blink-red");
+          } else {
+            timerElement.classList.remove("blink-red");
+          }
+
+          // Update progress
+          const progressFraction = (duration - remaining) / duration;
+          const container = document.querySelector('.progress-container');
+          const indicator = document.getElementById("progress-indicator");
+          if (container && indicator) {
+            const containerWidth = container.offsetWidth;
+            const indicatorPosition = containerWidth * progressFraction;
+            indicator.style.left = `${indicatorPosition}px`;
+          }
+
+          // Update note
+          const noteElement = document.getElementById("note");
+          if (note.trim().length > 0) {
+            noteElement.style.display = "block";
+            noteElement.textContent = note;
+          } else {
+            noteElement.style.display = "none";
+          }
         }
-
-        // Progress indicator update
-        const progressFraction = (duration - remaining) / duration;
-        const container = document.querySelector('.progress-container');
-        const indicator = document.getElementById("progress-indicator");
-        if (container && indicator) {
-          const containerWidth = container.offsetWidth;
-          const indicatorPosition = containerWidth * progressFraction;
-          indicator.style.left = `${indicatorPosition}px`;
-        }
-      }
-    });
-  }
+      });
+    }
   </script>
 
 </body>

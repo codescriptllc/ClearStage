@@ -29,6 +29,16 @@
   transition: color 0.2s ease;
 }
 
+    .note {
+      font-size: 22px;
+      font-weight: 500;
+      padding: 10px;
+      text-align: center;
+      max-width: 90%;
+      margin: 0 auto;
+      color: #333;
+    }
+    
 .timer.blink-red {
   color: red;
   animation: blink 1s infinite;
