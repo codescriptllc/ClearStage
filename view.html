@@ -42,27 +42,31 @@
     db.collection("timers").doc(id).onSnapshot((doc) => {
       if (doc.exists) {
         const data = doc.data();
+
         const remaining = data.timeRemaining;
         const duration = data.duration;
+
         const note = data.notes || "";
-        const noteVisible = data.noteVisible !== false; // default to true
+        const noteVisible = data.noteVisible !== false; // default true
         const noteIsBold = data.noteIsBold === true;
         const noteIsBlinking = data.noteIsBlinking === true;
 
-        // Update Timer
         const timerElement = document.getElementById("timer");
+        const noteElement = document.getElementById("note");
+
+        // Update Timer Text
         const min = String(Math.floor(remaining / 60)).padStart(2, '0');
         const sec = String(remaining % 60).padStart(2, '0');
         timerElement.textContent = `${min}:${sec}`;
 
-        // Blinking effect for timer
+        // Blink if under 10 seconds
         if (remaining <= 10 && remaining > 0) {
           timerElement.classList.add("blink-red");
         } else {
           timerElement.classList.remove("blink-red");
         }
 
-        // Update progress
+        // Update Progress Bar
         const progressFraction = (duration - remaining) / duration;
         const container = document.querySelector('.progress-container');
         const indicator = document.getElementById("progress-indicator");
@@ -72,24 +76,24 @@
           indicator.style.left = `${indicatorPosition}px`;
         }
 
-        // Update Note Display
-        const noteElement = document.getElementById("note");
-
+        // Update Note Display & Style
         if (noteVisible && note.trim().length > 0) {
           noteElement.style.display = "block";
           noteElement.textContent = note;
 
-          // Set styling classes
           noteElement.classList.toggle("bold", noteIsBold);
           noteElement.classList.toggle("blink", noteIsBlinking);
+          timerElement.classList.add("small");
         } else {
           noteElement.style.display = "none";
           noteElement.classList.remove("bold", "blink");
+          timerElement.classList.remove("small");
         }
       }
     });
   }
 </script>
+
 
 
 </body>
