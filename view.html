@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>ClearStage Timer</title>
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-analytics.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-database.js"></script>
 
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -25,49 +29,56 @@
     <div class="progress-indicator" id="progress-indicator">▼</div>
   </div>
 
-  <!-- Firebase Config -->
+  <!-- Firebase Configuration -->
   <script src="/firebaseconfiguration.js"></script>
 
-<!-- Timer Logic -->
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const name = params.get("name") || "Timer";
-  const id = params.get("id");
+  <!-- Timer Logic -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") || "Timer";
+    const id = params.get("id");
 
-  document.getElementById("title").textContent = name;
+    document.getElementById("title").textContent = name;
 
-  if (!id) {
-    alert("Timer ID not provided.");
-  } else {
-    db.collection("timers").doc(id).onSnapshot((doc) => {
-      if (doc.exists) {
+    if (!id) {
+      alert("Timer ID not provided.");
+    } else {
+      db.collection("timers").doc(id).onSnapshot((doc) => {
+        if (!doc.exists) return;
+
         const data = doc.data();
 
+        const direction = data.direction || "Countdown";
         const remaining = data.timeRemaining;
+        const elapsed = data.timeElapsed || 0;
         const duration = data.duration;
 
         const note = data.notes || "";
-        const noteVisible = data.noteVisible !== false; // default true
+        const noteVisible = data.noteVisible !== false;
         const noteIsBold = data.noteIsBold === true;
         const noteIsBlinking = data.noteIsBlinking === true;
 
         const timerElement = document.getElementById("timer");
         const noteElement = document.getElementById("note");
 
-        // Update Timer Text
-        const min = String(Math.floor(remaining / 60)).padStart(2, '0');
-        const sec = String(remaining % 60).padStart(2, '0');
+        // Determine which time to display
+        const displayTime = direction === "Count Up" ? elapsed : remaining;
+        const min = String(Math.floor(displayTime / 60)).padStart(2, '0');
+        const sec = String(displayTime % 60).padStart(2, '0');
         timerElement.textContent = `${min}:${sec}`;
 
-        // Blink if under 10 seconds
-        if (remaining <= 10 && remaining > 0) {
+        // Blinking red effect (only for countdown)
+        if (direction === "Countdown" && remaining <= 10 && remaining > 0) {
           timerElement.classList.add("blink-red");
         } else {
           timerElement.classList.remove("blink-red");
         }
 
-        // Update Progress Bar
-        const progressFraction = (duration - remaining) / duration;
+        // Update progress indicator
+        const progressFraction = direction === "Count Up"
+          ? elapsed / duration
+          : (duration - remaining) / duration;
+
         const container = document.querySelector('.progress-container');
         const indicator = document.getElementById("progress-indicator");
         if (container && indicator) {
@@ -76,11 +87,10 @@
           indicator.style.left = `${indicatorPosition}px`;
         }
 
-        // Update Note Display & Style
+        // Handle note display
         if (noteVisible && note.trim().length > 0) {
           noteElement.style.display = "block";
           noteElement.textContent = note;
-
           noteElement.classList.toggle("bold", noteIsBold);
           noteElement.classList.toggle("blink", noteIsBlinking);
           timerElement.classList.add("small");
@@ -89,12 +99,8 @@
           noteElement.classList.remove("bold", "blink");
           timerElement.classList.remove("small");
         }
-      }
-    });
-  }
-</script>
-
-
-
+      });
+    }
+  </script>
 </body>
 </html>
